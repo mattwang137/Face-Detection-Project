@@ -19,7 +19,8 @@ reload(sys).setdefaultencoding("utf8")
 
 Ui_MainWindow,QtBaseClass=uic.loadUiType("test.ui")
 
-count=1
+fname=""
+n=0
 
 class Myapp(QtGui.QMainWindow,Ui_MainWindow):
     def __init__(self):
@@ -27,39 +28,63 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         Ui_MainWindow.__init__(self)
         self.setupUi(self)
 # --------------GUI--------------------------------------------------------
-        self.pushButton.clicked.connect(self.fun1)
-        self.pushButton_2.clicked.connect(self.fun2)
-        self.pushButton_3.clicked.connect(self.fun3)
-        self.pushButton_4.clicked.connect(self.fun4)
-        self.pushButton_5.clicked.connect(self.fun5)
-        self.pushButton_6.clicked.connect(self.fun6)
+        self.pushButton.clicked.connect(self.takePicture)
+        self.pushButton_2.clicked.connect(self.faceDetection)
+        self.pushButton_3.clicked.connect(self.fiveSensesDetection)
+        self.pushButton_4.clicked.connect(self.nextPicture)
+        self.pushButton_5.clicked.connect(self.previousPicture)
+        self.pushButton_6.clicked.connect(self.fun6) # waiting for change rgb
+        self.pushButton_8.clicked.connect(self.openFile)
+        self.pushButton_7.clicked.connect(self.recodeVideo)
 
         self.dial.valueChanged.connect(self.lcdNumber.display)
         self.dial_2.valueChanged.connect(self.lcdNumber_2.display)
         self.dial_3.valueChanged.connect(self.lcdNumber_3.display)
 
 # ---------------------------------------------------------------------
-    def fun1(self): #pushButton
+    def takePicture(self): #pushButton
         # please add recode function below
         # and shot picture function
         cap = cv2.VideoCapture(0)
+
+        if not os.path.exists("myPicture"):
+            os.mkdir("myPicture")
+        mypath = "./myPicture/"
+        files = os.listdir(mypath)
+        fn=len(files)
+
+        p=1
+
         while(cap.isOpened()):
             ret , frame = cap.read()
-            gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-            cv2.imshow('frame',frame)
-            if cv2.waitKey(1) & 0xFF ==ord('q'):
+            # gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+            cv2.imshow("Press 'z' to take a picture or press 'q' to exit",frame)
+            k=cv2.waitKey(1)
+            if k==ord("z") or k==ord("Z"): # take a picture
+                if fn==0:
+                    cv2.imwrite("myPicture\\pic"+str(p)+".jpg",frame)
+                    p+=1
+                else:
+                    fn+=1
+                    cv2.imwrite("myPicture\\pic"+str(fn)+".jpg",frame)
+            if cv2.waitKey(1) & 0xFF ==ord('q'): # quit
                 break
         cap.release()
         cv2.destroyAllWindows()
 
 # ---------------------------------------------------------------------
-    def fun2(self):
-        # waiting for solve: 已經拍過的照不蓋過, 從編號繼續往下拍
+    def faceDetection(self):
 
         cap=cv2.VideoCapture(0)
         detector=dlib.get_frontal_face_detector()
 
         p=1
+
+        if not os.path.exists("faceDetection"):
+            os.mkdir("faceDetection")
+        mypath = "./faceDetection/"
+        files = os.listdir(mypath)
+        fn=len(files)
 
         while(cap.isOpened()):
             try:
@@ -74,18 +99,21 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
 
                     cv2.rectangle(frame,(x1,y1),(x2,y2),(0,255,0),4)
                 if ret==True:
-                    cv2.imshow("frame",frame)
+                    cv2.imshow("Press 'z' to take a picture of face or press 'q' to exit",frame)
                     k=cv2.waitKey(1)
                     if k==ord("q"):
                         cap.release()
                         cv2.destroyAllWindows()
                         break
                     if k==ord("z") or k==ord("Z"): # press z to take a picture
-                        if not os.path.exists("myPicture"): # if this folder doesn't exists
-                            os.mkdir("myPicture") # then create it
-                        crop_frame = frame[y1:y2, x1:x2]
-                        cv2.imwrite("myPicture\\pic"+str(p)+".jpg",crop_frame)
-                        p=p+1
+                        if fn==0:
+                            crop_frame = frame[y1:y2, x1:x2]
+                            cv2.imwrite("faceDetection\\face"+str(p)+".jpg",crop_frame)
+                            p=p+1
+                        else:
+                            fn+=1
+                            crop_frame = frame[y1:y2, x1:x2]
+                            cv2.imwrite("faceDetection\\face"+str(fn)+".jpg",crop_frame)
                 else:
                     cap.release()
                     cv2.destroyAllWindows()
@@ -99,7 +127,7 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         cv2.destroyAllWindows()
 
 # ----------------------------------------------------------------
-    def fun3(self):
+    def fiveSensesDetection(self):
 
         cap=cv2.VideoCapture(0)
         detector=dlib.get_frontal_face_detector()
@@ -136,27 +164,57 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         cap.release()
         cv2.destroyAllWindows()
 # ----------------------------------------------------------------
-    def fun4(self):
+    def nextPicture(self):
 
-        global count #1
+        global fname
+        global n
 
-        mypath = "./myPicture/"
+        a=fname.split("/")[-1] # picture name
+        nfile=fname.split("/")[-2] # folder name
+        mypath = "./"+nfile+"/"
         files = os.listdir(mypath)
-        fileslen=len(files)
+        nf=len(files) # number of file in that folder
 
-        imgPath="./myPicture/pic"+str(count)+".jpg"
-        text="You are watching: No.[%d] picture "%count+"(pic%d.jpg)"%count
-        count+=1
+        imgPath="./"+nfile+"/"+files[n]
 
-        if count == fileslen+1:
-            count=1
-            self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(320,320,QtCore.Qt.KeepAspectRatio))
-            self.label_2.setText(text)
+        n+=1
+        print(n)
+
+        if n==nf+1:
+            n=0
+            imgPath="./"+nfile+"/"+files[n]
+            self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(640,480,QtCore.Qt.KeepAspectRatio))
+            self.lineEdit.setText(imgPath)
+            print("111111",n)
         else:
-            self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(320,320,QtCore.Qt.KeepAspectRatio))
-            self.label_2.setText(text)
+
+            self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(640,480,QtCore.Qt.KeepAspectRatio))
+            self.lineEdit.setText(imgPath)
+            print("2-->",n)
+
+        print(files)
+
+
+
+        # global count #1
+
+        # mypath = "./myPicture/"
+        # files = os.listdir(mypath)
+        # fileslen=len(files)
+
+        # imgPath="./myPicture/pic"+str(count)+".jpg"
+        # text="You are watching: No.[%d] picture "%count+"(pic%d.jpg)"%count
+        # count+=1
+
+        # if count == fileslen+1:
+        #     count=1
+        #     self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(320,320,QtCore.Qt.KeepAspectRatio))
+        #     self.label_2.setText(text)
+        # else:
+        #     self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(320,320,QtCore.Qt.KeepAspectRatio))
+        #     self.label_2.setText(text)
 # ----------------------------------------------------------------
-    def fun5(self):
+    def previousPicture(self):
 
         global count #1
 
@@ -175,7 +233,7 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         else:
             self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(320,320,QtCore.Qt.KeepAspectRatio))
             self.label_2.setText(text)
-
+# ----------------------------------------------------------------
     def fun6(self):
 
         # global count #1
@@ -206,7 +264,53 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
             if k==ord('q'):
                 break
         cv2.destroyAllWindows()
+# ----------------------------------------------------------------
+    def openFile(self):
 
+        global fname
+        global n
+
+        path="D:\project\myPicture"
+        fname=QtGui.QFileDialog.getOpenFileName(self,"Open file",path,"Image files (*.jpg *.gif)")
+        self.label.setPixmap(QtGui.QPixmap(fname))
+        self.lineEdit.setText(fname)
+
+        a=fname.split("/")[-1] # picture name
+        nfile=fname.split("/")[-2] # folder name
+        mypath = "./"+nfile+"/"
+        files = os.listdir(mypath)
+        n=files.index(a) # number of picture in list
+# ----------------------------------------------------------------
+    def recodeVideo(self):
+        cap = cv2.VideoCapture(0)
+
+        fourcc = cv2.cv.CV_FOURCC("D","I","B"," ")
+
+        mypath = "./myVideo/"
+        files = os.listdir(mypath)
+        fileslen=len(files)
+        fileslen+=1
+
+        out = cv2.VideoWriter("myVideo\\video"+str(fileslen)+".avi", fourcc,30, (640, 480))
+
+        if not os.path.exists("myVideo"): # if this folder doesn't exists
+            os.mkdir("myVideo")
+
+        while(cap.isOpened()):
+            ret,frame = cap.read()
+            if ret == True:
+
+                out.write(frame)
+
+                cv2.imshow("Recoding...", frame)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+            else:
+                break
+        # Release everything if job is finished
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()
 
 if __name__=="__main__":
     app=QtGui.QApplication(sys.argv)
