@@ -12,34 +12,40 @@ import os
 from PyQt4 import QtCore,QtGui,uic
 import numpy as np
 import cv2
-import os
 import dlib
 import imutils
 reload(sys).setdefaultencoding("utf8")
 
-Ui_MainWindow,QtBaseClass=uic.loadUiType("test.ui")
+Ui_MainWindow,QtBaseClass=uic.loadUiType("project1.ui")
 
 fname=""
 n=0
 
 class Myapp(QtGui.QMainWindow,Ui_MainWindow):
+    strimg=""
+    imgpath="D:\\project\\myPicture"
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
         Ui_MainWindow.__init__(self)
         self.setupUi(self)
 # --------------GUI--------------------------------------------------------
-        self.pushButton.clicked.connect(self.takePicture)
-        self.pushButton_2.clicked.connect(self.faceDetection)
-        self.pushButton_3.clicked.connect(self.fiveSensesDetection)
-        self.pushButton_4.clicked.connect(self.nextPicture)
-        self.pushButton_5.clicked.connect(self.previousPicture)
-        self.pushButton_6.clicked.connect(self.fun6) # waiting for change rgb
-        self.pushButton_8.clicked.connect(self.openFile)
-        self.pushButton_7.clicked.connect(self.recodeVideo)
+        self.pushButton.clicked.connect(self.takePicture) #50
+        self.pushButton_2.clicked.connect(self.faceDetection) #81
+        self.pushButton_3.clicked.connect(self.fiveSensesDetection) #135
+        self.pushButton_4.clicked.connect(self.nextPicture) #172
+        self.pushButton_5.clicked.connect(self.previousPicture) #201
+        self.pushButton_6.clicked.connect(self.saveImage)
+        self.pushButton_8.clicked.connect(self.openFile) #260
+        self.pushButton_7.clicked.connect(self.recodeVideo) #282
+        self.pushButton_10.clicked.connect(self.firstPic)
+        self.pushButton_11.clicked.connect(self.LastPic)
 
-        self.dial.valueChanged.connect(self.lcdNumber.display)
-        self.dial_2.valueChanged.connect(self.lcdNumber_2.display)
-        self.dial_3.valueChanged.connect(self.lcdNumber_3.display)
+        self.dial.valueChanged.connect(self.controlrgb)
+        self.dial_2.valueChanged.connect(self.controlrgb)
+        self.dial_3.valueChanged.connect(self.controlrgb)
+
+        self.horizontalSlider.valueChanged.connect(self.bright)
+        self.horizontalSlider_2.valueChanged.connect(self.blur)
 
 # ---------------------------------------------------------------------
     def takePicture(self): #pushButton
@@ -169,116 +175,90 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         global fname
         global n
 
+        # n=files.index(a) # number of picture in list
+
         a=fname.split("/")[-1] # picture name
         nfile=fname.split("/")[-2] # folder name
         mypath = "./"+nfile+"/"
         files = os.listdir(mypath)
         nf=len(files) # number of file in that folder
 
-        imgPath="./"+nfile+"/"+files[n]
+        # imgPath="./"+nfile+"/"+files[n]
 
         n+=1
-        print(n)
 
-        if n==nf+1:
+        if n==nf:
             n=0
             imgPath="./"+nfile+"/"+files[n]
             self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(640,480,QtCore.Qt.KeepAspectRatio))
             self.lineEdit.setText(imgPath)
-            print("111111",n)
-        else:
 
+        else:
+            imgPath="./"+nfile+"/"+files[n]
             self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(640,480,QtCore.Qt.KeepAspectRatio))
             self.lineEdit.setText(imgPath)
-            print("2-->",n)
 
-        print(files)
-
-
-
-        # global count #1
-
-        # mypath = "./myPicture/"
-        # files = os.listdir(mypath)
-        # fileslen=len(files)
-
-        # imgPath="./myPicture/pic"+str(count)+".jpg"
-        # text="You are watching: No.[%d] picture "%count+"(pic%d.jpg)"%count
-        # count+=1
-
-        # if count == fileslen+1:
-        #     count=1
-        #     self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(320,320,QtCore.Qt.KeepAspectRatio))
-        #     self.label_2.setText(text)
-        # else:
-        #     self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(320,320,QtCore.Qt.KeepAspectRatio))
-        #     self.label_2.setText(text)
 # ----------------------------------------------------------------
     def previousPicture(self):
 
-        global count #1
+        global fname
+        global n
 
-        mypath = "./myPicture/"
+        # n=files.index(a) # number of picture in list
+
+        a=fname.split("/")[-1] # picture name
+        nfile=fname.split("/")[-2] # folder name
+        mypath = "./"+nfile+"/"
         files = os.listdir(mypath)
-        fileslen=len(files)
+        nf=len(files) # number of file in that folder
 
-        imgPath="./myPicture/pic"+str(count)+".jpg"
-        text="You are watching: No.[%d] picture "%count+"(pic%d.jpg)"%count
-        count-=1
+        # imgPath="./"+nfile+"/"+files[n]
+        n-=1
 
-        if count == 0:
-            count=fileslen
-            self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(320,320,QtCore.Qt.KeepAspectRatio))
-            self.label_2.setText(text)
+        if n==-1:
+            n=nf-1
+            imgPath="./"+nfile+"/"+files[n]
+            self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(640,480,QtCore.Qt.KeepAspectRatio))
+            self.lineEdit.setText(imgPath)
+
         else:
-            self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(320,320,QtCore.Qt.KeepAspectRatio))
-            self.label_2.setText(text)
+            imgPath="./"+nfile+"/"+files[n]
+            self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(640,480,QtCore.Qt.KeepAspectRatio))
+            self.lineEdit.setText(imgPath)
+
 # ----------------------------------------------------------------
-    def fun6(self):
+    def bright(self):
 
-        # global count #1
+        n=self.horizontalSlider.value()
+        n=n*50
 
-        # imgPath="./myPicture/pic"+str(count)+".jpg"
-        # self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(320,320,QtCore.Qt.KeepAspectRatio))
+        s=fname.replace("/","\\")
+        img=cv2.imread(str(s))
 
-        # v=self.dial.value() # get dial value
-        img=cv2.imread("a.jpg")
-        total=img.shape
+        a=1.3
 
-        for i in range(0,total[0]):
-            for j in range(0,total[1]):
-                # img[i,j,0]=img[i,j,0]/3 #R
-                # img[i,j,1]=img[i,j,1]/3 #G
-                # img[i,j,2]=img[i,j,2]/3 #B
-                img[i,j,0]=self.dial.value()
-                img[i,j,1]=self.dial_2.value()
-                img[i,j,2]=self.dial_3.value()
-        print(img[i,j,0])
-        print(img[i,j,1])
-        print(img[i,j,2])
+        x,y,chan=img.shape
+        blank=np.zeros([x,y,chan],img.dtype)
+        merge=cv2.addWeighted(img,a,blank,1-a,n)
 
-        while(1):
-            cv2.imshow("image",img)
+        cv2.imwrite(self.imgpath+"\\change1.jpg",merge)
+        self.label.setPixmap(QtGui.QPixmap(self.imgpath+"\\change1.jpg"))
 
-            k=cv2.waitKey(1)
-            if k==ord('q'):
-                break
-        cv2.destroyAllWindows()
 # ----------------------------------------------------------------
     def openFile(self):
 
         global fname
         global n
 
-        path="D:\project\myPicture"
-        fname=QtGui.QFileDialog.getOpenFileName(self,"Open file",path,"Image files (*.jpg *.gif)")
+        fname=QtGui.QFileDialog.getOpenFileName(self,"Open file",self.imgpath,"Image files (*.jpg *.gif)")
+        self.strimg=fname
         self.label.setPixmap(QtGui.QPixmap(fname))
         self.lineEdit.setText(fname)
 
         a=fname.split("/")[-1] # picture name
         nfile=fname.split("/")[-2] # folder name
         mypath = "./"+nfile+"/"
-        files = os.listdir(mypath)
+        files = os.listdir(mypath) #make a list and all file name within
         n=files.index(a) # number of picture in list
 # ----------------------------------------------------------------
     def recodeVideo(self):
@@ -311,6 +291,104 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         cap.release()
         out.release()
         cv2.destroyAllWindows()
+# ----------------------------------------------------------------
+    def blur(self):
+        cblur=self.horizontalSlider_2.value()
+        if cblur==2:
+            cblur=5
+        if cblur==3:
+            cblur=15
+        if cblur==4:
+            cblur=19
+        print(cblur)
+        s=fname.replace("/","\\")
+        im=cv2.imread(str(s))
+        blur=cv2.GaussianBlur(im,(cblur,cblur),0)
+        cv2.imwrite(self.imgpath+"\\blur1.jpg",blur)
+        self.label.setPixmap(QtGui.QPixmap(self.imgpath+"\\blur1.jpg"))
+# ----------------------------------------------------------------
+    def controlrgb(self):
+        r=self.dial.value()
+        r=r*51
+        self.lcdNumber.display(r)
+
+        g=self.dial_2.value()
+        g=g*51
+        self.lcdNumber_2.display(g)
+
+        b=self.dial_3.value()
+        b=b*51
+        self.lcdNumber_3.display(b)
+
+        s=fname.replace("/","\\")
+        img=cv2.imread(str(s))
+
+        a=1.3
+
+        x,y,chan=img.shape
+        red=np.zeros([x,y,chan],img.dtype)
+        for i in range(0,x):
+            for j in range(0,y):
+                red[i,j]=[b,g,r]
+
+        merge=cv2.addWeighted(img,a,red,1-a,n)
+
+        cv2.imwrite(self.imgpath+"\\change1.jpg",merge)
+
+        self.label.setPixmap(QtGui.QPixmap(self.imgpath+"\\change1.jpg"))
+
+# ----------------------------------------------------------------
+    def saveImage(self):
+
+        if not os.path.exists("changedPic"):
+            os.mkdir("changedPic")
+
+        img=cv2.imread("./myPicture/change1.jpg")
+
+        files=os.listdir("./changedPic/")
+        fn=len(files)
+        imgpath= "D:\\project\\changedPic"
+        if fn==0:
+            cv2.imwrite(imgpath+"\\cpic1.jpg",img)
+        else:
+            fn+=1
+            cv2.imwrite(imgpath+"\\cpic"+str(fn)+".jpg",img)
+        msg1=QtGui.QMessageBox()
+        msg1.setWindowTitle("Image Saved")
+        msg1.setInformativeText(u"你的圖片已被保存")
+        msg1.exec_()
+# ----------------------------------------------------------------
+    def firstPic(self):
+
+        global fname
+        global n
+
+        a=fname.split("/")[-1] # picture name
+        nfile=fname.split("/")[-2] # folder name
+        mypath = "./"+nfile+"/"
+        files = os.listdir(mypath)
+
+        imgPath="./"+nfile+"/"+files[0]
+        self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(640,480,QtCore.Qt.KeepAspectRatio))
+        self.lineEdit.setText(imgPath)
+# ----------------------------------------------------------------
+    def LastPic(self):
+
+        global fname
+        global n
+
+        a=fname.split("/")[-1] # picture name
+        nfile=fname.split("/")[-2] # folder name
+        mypath = "./"+nfile+"/"
+        files = os.listdir(mypath)
+        nf=len(files)
+        nf=nf-1
+
+        imgPath="./"+nfile+"/"+files[nf]
+        self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(640,480,QtCore.Qt.KeepAspectRatio))
+        self.lineEdit.setText(imgPath)
+
+
 
 if __name__=="__main__":
     app=QtGui.QApplication(sys.argv)
