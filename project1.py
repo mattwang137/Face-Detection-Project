@@ -23,7 +23,7 @@ n=0
 
 class Myapp(QtGui.QMainWindow,Ui_MainWindow):
     strimg=""
-    imgpath="D:\\project\\myPicture"
+    imgpath="C:\\project\\myPicture"
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
         Ui_MainWindow.__init__(self)
@@ -259,7 +259,7 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         nfile=fname.split("/")[-2] # folder name
         mypath = "./"+nfile+"/"
         files = os.listdir(mypath) #make a list and all file name within
-        n=files.index(a) # number of picture in list
+        self.n=files.index(a) # number of picture in list
 # ----------------------------------------------------------------
     def recodeVideo(self):
         cap = cv2.VideoCapture(0)
