@@ -5,6 +5,7 @@
 Develop Date: 18/06/2019
 Develop Subject: My Project
 Developer: Matt Wang
+Python environment: version 3.6
 """
 
 import sys
@@ -14,7 +15,9 @@ import numpy as np
 import cv2
 import dlib
 import imutils
-reload(sys).setdefaultencoding("utf8")
+import datetime
+import face_recognition
+# reload(sys).setdefaultencoding("utf8")
 
 Ui_MainWindow,QtBaseClass=uic.loadUiType("project1.ui")
 
@@ -23,22 +26,25 @@ n=0
 
 class Myapp(QtGui.QMainWindow,Ui_MainWindow):
     strimg=""
-    imgpath="C:\\project\\myPicture"
+    imgpath="D:\\project\\myPicture"
+    # imgpath="\\myPicture"
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
         Ui_MainWindow.__init__(self)
         self.setupUi(self)
 # --------------GUI--------------------------------------------------------
-        self.pushButton.clicked.connect(self.takePicture) #50
-        self.pushButton_2.clicked.connect(self.faceDetection) #81
-        self.pushButton_3.clicked.connect(self.fiveSensesDetection) #135
-        self.pushButton_4.clicked.connect(self.nextPicture) #172
-        self.pushButton_5.clicked.connect(self.previousPicture) #201
+        self.pushButton.clicked.connect(self.takePicture)
+        self.pushButton_2.clicked.connect(self.faceDetection)
+        self.pushButton_3.clicked.connect(self.fiveSensesDetection)
+        self.pushButton_4.clicked.connect(self.nextPicture)
+        self.pushButton_5.clicked.connect(self.previousPicture)
         self.pushButton_6.clicked.connect(self.saveImage)
-        self.pushButton_8.clicked.connect(self.openFile) #260
-        self.pushButton_7.clicked.connect(self.recodeVideo) #282
+        self.pushButton_8.clicked.connect(self.openFile)
+        self.pushButton_7.clicked.connect(self.recodeVideo)
         self.pushButton_10.clicked.connect(self.firstPic)
         self.pushButton_11.clicked.connect(self.LastPic)
+        self.pushButton_9.clicked.connect(self.collectFace)
+        self.pushButton_12.clicked.connect(self.facerecog)
 
         self.dial.valueChanged.connect(self.controlrgb)
         self.dial_2.valueChanged.connect(self.controlrgb)
@@ -48,9 +54,8 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         self.horizontalSlider_2.valueChanged.connect(self.blur)
 
 # ---------------------------------------------------------------------
-    def takePicture(self): #pushButton
-        # please add recode function below
-        # and shot picture function
+    def takePicture(self):
+
         cap = cv2.VideoCapture(0)
 
         if not os.path.exists("myPicture"):
@@ -134,6 +139,8 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
 
 # ----------------------------------------------------------------
     def fiveSensesDetection(self):
+
+        # 應用
 
         cap=cv2.VideoCapture(0)
         detector=dlib.get_frontal_face_detector()
@@ -227,13 +234,36 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
             self.lineEdit.setText(imgPath)
 
 # ----------------------------------------------------------------
-    def bright(self):
+    def bright(self): # path fixed!!
+
+        # n=self.horizontalSlider.value()
+        # n=n*50
+
+        # s=fname.replace("/","\\")
+        # img=cv2.imread(str(s))
+        # print("fname-->",fname) #fname--> D:/project/faces/2019_6_24_13_51_23.jpg
+        # print("s-->",s) #s--> D:\project\faces\2019_6_24_13_51_23.jpg
+
+        # a=1.3
+
+        # x,y,chan=img.shape
+        # blank=np.zeros([x,y,chan],img.dtype)
+        # merge=cv2.addWeighted(img,a,blank,1-a,n)
+
+        # if not os.path.exists("temp"):
+        #     os.mkdir("temp")
+
+        # cv2.imwrite(self.imgpath+"\\change1.jpg",merge)
+        # self.label.setPixmap(QtGui.QPixmap(self.imgpath+"\\change1.jpg"))
 
         n=self.horizontalSlider.value()
         n=n*50
 
-        s=fname.replace("/","\\")
+        # s=self.strimg.replace("/","\\")
+        s=self.strimg
         img=cv2.imread(str(s))
+        # print("strimg-->",self.strimg) #fname--> D:/project/faces/2019_6_24_13_51_23.jpg
+        # print("s-->",s) #s--> D:\project\faces\2019_6_24_13_51_23.jpg
 
         a=1.3
 
@@ -241,8 +271,15 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         blank=np.zeros([x,y,chan],img.dtype)
         merge=cv2.addWeighted(img,a,blank,1-a,n)
 
-        cv2.imwrite(self.imgpath+"\\change1.jpg",merge)
-        self.label.setPixmap(QtGui.QPixmap(self.imgpath+"\\change1.jpg"))
+        if not os.path.exists("temp"):
+            os.mkdir("temp")
+
+        # cv2.imwrite(self.imgpath+"\\change1.jpg",merge)
+        # self.label.setPixmap(QtGui.QPixmap(self.imgpath+"\\change1.jpg"))
+
+        cv2.imwrite("./temp/change1.jpg",merge)
+        self.label.setPixmap(QtGui.QPixmap("./temp/change1.jpg"))
+
 
 # ----------------------------------------------------------------
     def openFile(self):
@@ -252,14 +289,18 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
 
         fname=QtGui.QFileDialog.getOpenFileName(self,"Open file",self.imgpath,"Image files (*.jpg *.gif)")
         self.strimg=fname
-        self.label.setPixmap(QtGui.QPixmap(fname))
-        self.lineEdit.setText(fname)
+        # self.label.setPixmap(QtGui.QPixmap(fname))
+        # self.lineEdit.setText(fname)
+        self.label.setPixmap(QtGui.QPixmap(self.strimg))
+        self.lineEdit.setText(self.strimg)
 
         a=fname.split("/")[-1] # picture name
         nfile=fname.split("/")[-2] # folder name
         mypath = "./"+nfile+"/"
         files = os.listdir(mypath) #make a list and all file name within
+        n=files.index(a) # number of picture in list
         self.n=files.index(a) # number of picture in list
+
 # ----------------------------------------------------------------
     def recodeVideo(self):
         cap = cv2.VideoCapture(0)
@@ -387,7 +428,91 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         imgPath="./"+nfile+"/"+files[nf]
         self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(640,480,QtCore.Qt.KeepAspectRatio))
         self.lineEdit.setText(imgPath)
+# ----------------------------------------------------------------
+    def collectFace(self):
+        cap=cv2.VideoCapture(0)
+        detector=dlib.get_frontal_face_detector()
+        predictor=dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
+        if not os.path.exists("faces"):
+            os.makedirs("faces")
+
+        while(cap.isOpened()):
+            ret , frame = cap.read()
+            # gray=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+            face_rects,scores,idx=detector.run(frame,0)
+            for i, d in enumerate(face_rects):
+                x1=d.left()-20
+                y1=d.top()-30
+                x2=d.right()+20
+                y2=d.bottom()+20
+                t="%2.2f(%d)"%(scores[i],idx[i])
+
+                cv2.rectangle(frame,(x1,y1),(x2,y2),(0,255,0),4) # 人臉辨識方框
+
+                crop_frame = frame[y1:y2, x1:x2]
+                time=datetime.datetime.now()
+                name="%s_%s_%s_%s_%s_%s.jpg"%(time.year, time.month, time.day, time.hour, time.minute, time.second)
+                cv2.imwrite("./faces/"+name,crop_frame)
+                cv2.putText(frame,t,(x1,y1),cv2.FONT_HERSHEY_DUPLEX,0.7,(255,255,255),1)
+
+            cv2.imshow("Please press 'q' to exit",frame)
+            if cv2.waitKey(1)==ord("q"):
+                break
+        cap.release()
+        cv2.destroyAllWindows()
+        msg1=QtGui.QMessageBox()
+        msg1.setWindowTitle("Faces collected")
+        msg1.setInformativeText(u"臉部檔案蒐集完成!你可以在faces檔案夾找到你的圖檔")
+        msg1.exec_()
+# ----------------------------------------------------------------
+    def facerecog(self):
+        cap = cv2.VideoCapture(0)
+        fr = face_recognition
+        imgpath = "./facesData/"
+
+        n=0
+        names=[]
+        faces=[]
+        files = os.listdir(imgpath)
+
+        for i in files:
+            i=i.replace(".jpg","")
+            names.append(i)
+
+        lenf=len(files)
+
+        for j in range(lenf):
+            enc=fr.face_encodings(fr.load_image_file(imgpath+files[j]))[0]
+            faces.append(enc)
+
+        while True:
+            ret, frame = cap.read()
+            rgb_frame = frame[:, :, ::-1]
+
+            face_locations = fr.face_locations(rgb_frame)
+            face_encodings = fr.face_encodings(rgb_frame, face_locations)
+
+            for (x1, y2, x2, y1), face_encoding in zip(face_locations, face_encodings):
+                matches = fr.compare_faces(faces, face_encoding)
+
+                showName = "Unknown"
+
+                dist = fr.face_distance(faces, face_encoding)
+                matchIndex = np.argmin(dist)
+                if matches[matchIndex]:
+                    showName = names[matchIndex]
+
+                cv2.rectangle(frame, (y1,x1), (y2,x2), (0,255,0), 4)
+
+                cv2.rectangle(frame, (y1,x2-30), (y2,x2), (255,0,0), cv2.FILLED)
+                cv2.putText(frame, showName, (y1+10, x2-10), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255,255,255), 1)
+
+            cv2.imshow("Face Recognition Operating", frame)
+            if cv2.waitKey(1)==ord("q"):
+                break
+        cap.release()
+        cv2.destroyAllWindows()
 
 
 if __name__=="__main__":
