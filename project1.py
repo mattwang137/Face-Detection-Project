@@ -2,8 +2,8 @@
 #encoding:utf-8
 
 """
-Develop Date: 18/06/2019
-Develop Subject: My Project
+Develop Date: 18/06/2019 - 26/06/2019
+Develop Subject: Python_Opencv_FaceDetection
 Developer: Matt Wang
 Python environment: version 3.6
 """
@@ -21,13 +21,10 @@ import face_recognition
 
 Ui_MainWindow,QtBaseClass=uic.loadUiType("project1.ui")
 
-fname=""
-n=0
-
 class Myapp(QtGui.QMainWindow,Ui_MainWindow):
     strimg=""
-    imgpath="D:\\project\\myPicture"
-    # imgpath="\\myPicture"
+    fname=""
+    n=0
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
         Ui_MainWindow.__init__(self)
@@ -140,57 +137,81 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
 # ----------------------------------------------------------------
     def fiveSensesDetection(self):
 
-        # 應用
-
         cap=cv2.VideoCapture(0)
         detector=dlib.get_frontal_face_detector()
         predictor=dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
+        p=1
+
+        if not os.path.exists("faceDetection1"):
+            os.mkdir("faceDetection1")
+        mypath = "./faceDetection1/"
+        files = os.listdir(mypath)
+        fn=len(files)
+
         while(cap.isOpened()):
-            ret , frame = cap.read()
-            # gray=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-            face_rects,scores,idx=detector.run(frame,0)
-            for i, d in enumerate(face_rects):
-                x1=d.left()-20
-                y1=d.top()-30
-                x2=d.right()+20
-                y2=d.bottom()+20
-                t="%2.2f(%d)"%(scores[i],idx[i])
+            try:
+                ret , frame = cap.read()
+                # gray=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+                face_rects,scores,idx=detector.run(frame,0)
+                for i, d in enumerate(face_rects):
+                    x1=d.left()
+                    y1=d.top()
+                    x2=d.right()
+                    y2=d.bottom()
+                    text="%2.2f(%d)"%(scores[i],idx[i])
 
-                cv2.rectangle(frame,(x1,y1),(x2,y2),(0,255,0),4) # 人臉辨識方框
-                # 給人臉打分數, 分數越高越有可能是真的人臉
-                cv2.putText(frame,t,(x1,y1),cv2.FONT_HERSHEY_DUPLEX,0.7,(255,255,255),1)
+                    cv2.rectangle(frame,(x1,y1),(x2,y2),(0,255,0),4)
+                    cv2.putText(frame,text,(x1,y1),cv2.FONT_HERSHEY_DUPLEX,0.7,(255,255,255),1)
+                    lanf=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
 
-                # 特徵辨識的n個圓點 ( 1-20: 臉框 , 20-68: 五官 )
+                    shape=predictor(lanf,d)
 
-                lanf=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+                    for i in range(68):
+                        cv2.circle(frame,(shape.part(i).x,shape.part(i).y),3,(0,0,255),2)
+                        cv2.putText(frame,str(i),(shape.part(i).x,shape.part(i).y),cv2.FONT_HERSHEY_COMPLEX,0.5,(255,0,0),1)
 
-                shape=predictor(lanf,d)
+                if ret==True:
+                    cv2.imshow("Press 'z' to take a picture of face or press 'q' to exit",frame)
+                    k=cv2.waitKey(1)
+                    if k==ord("q"):
+                        cap.release()
+                        cv2.destroyAllWindows()
+                        break
+                    if k==ord("z") or k==ord("Z"): # press z to take a picture
+                        if fn==0:
+                            crop_frame = frame[y1:y2, x1:x2]
+                            cv2.imwrite("faceDetection1\\face"+str(p)+".jpg",crop_frame)
+                            p=p+1
+                        else:
+                            fn+=1
+                            crop_frame = frame[y1:y2, x1:x2]
+                            cv2.imwrite("faceDetection1\\face"+str(fn)+".jpg",crop_frame)
+                else:
+                    cap.release()
+                    cv2.destroyAllWindows()
+                    break
 
-                for i in range(68):
-                    cv2.circle(frame,(shape.part(i).x,shape.part(i).y),3,(0,0,255),2)
-                    cv2.putText(frame,str(i),(shape.part(i).x,shape.part(i).y),cv2.FONT_HERSHEY_COMPLEX,0.5,(255,0,0),1)
-
-            cv2.imshow("frame",frame)
-            if cv2.waitKey(1)==ord("q"):
+            except:
+                cap.release()
+                cv2.destroyAllWindows()
                 break
         cap.release()
         cv2.destroyAllWindows()
+
 # ----------------------------------------------------------------
     def nextPicture(self):
 
-        global fname
         global n
+        global fname
 
-        # n=files.index(a) # number of picture in list
+        if not os.path.exists("temp"):
+            os.mkdir("temp")
 
-        a=fname.split("/")[-1] # picture name
         nfile=fname.split("/")[-2] # folder name
         mypath = "./"+nfile+"/"
         files = os.listdir(mypath)
         nf=len(files) # number of file in that folder
-
-        # imgPath="./"+nfile+"/"+files[n]
 
         n+=1
 
@@ -199,27 +220,30 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
             imgPath="./"+nfile+"/"+files[n]
             self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(640,480,QtCore.Qt.KeepAspectRatio))
             self.lineEdit.setText(imgPath)
+            img=cv2.imread(imgPath)
+            cv2.imwrite("./temp/change1.jpg",img)
 
         else:
             imgPath="./"+nfile+"/"+files[n]
             self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(640,480,QtCore.Qt.KeepAspectRatio))
             self.lineEdit.setText(imgPath)
+            img=cv2.imread(imgPath)
+            cv2.imwrite("./temp/change1.jpg",img)
 
 # ----------------------------------------------------------------
     def previousPicture(self):
 
-        global fname
         global n
+        global fname
 
-        # n=files.index(a) # number of picture in list
+        if not os.path.exists("temp"):
+            os.mkdir("temp")
 
-        a=fname.split("/")[-1] # picture name
         nfile=fname.split("/")[-2] # folder name
         mypath = "./"+nfile+"/"
         files = os.listdir(mypath)
         nf=len(files) # number of file in that folder
 
-        # imgPath="./"+nfile+"/"+files[n]
         n-=1
 
         if n==-1:
@@ -227,43 +251,25 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
             imgPath="./"+nfile+"/"+files[n]
             self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(640,480,QtCore.Qt.KeepAspectRatio))
             self.lineEdit.setText(imgPath)
+            img=cv2.imread(imgPath)
+            cv2.imwrite("./temp/change1.jpg",img)
+
 
         else:
             imgPath="./"+nfile+"/"+files[n]
             self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(640,480,QtCore.Qt.KeepAspectRatio))
             self.lineEdit.setText(imgPath)
+            img=cv2.imread(imgPath)
+            cv2.imwrite("./temp/change1.jpg",img)
+
 
 # ----------------------------------------------------------------
     def bright(self): # path fixed!!
 
-        # n=self.horizontalSlider.value()
-        # n=n*50
-
-        # s=fname.replace("/","\\")
-        # img=cv2.imread(str(s))
-        # print("fname-->",fname) #fname--> D:/project/faces/2019_6_24_13_51_23.jpg
-        # print("s-->",s) #s--> D:\project\faces\2019_6_24_13_51_23.jpg
-
-        # a=1.3
-
-        # x,y,chan=img.shape
-        # blank=np.zeros([x,y,chan],img.dtype)
-        # merge=cv2.addWeighted(img,a,blank,1-a,n)
-
-        # if not os.path.exists("temp"):
-        #     os.mkdir("temp")
-
-        # cv2.imwrite(self.imgpath+"\\change1.jpg",merge)
-        # self.label.setPixmap(QtGui.QPixmap(self.imgpath+"\\change1.jpg"))
-
         n=self.horizontalSlider.value()
         n=n*50
 
-        # s=self.strimg.replace("/","\\")
-        s=self.strimg
-        img=cv2.imread(str(s))
-        # print("strimg-->",self.strimg) #fname--> D:/project/faces/2019_6_24_13_51_23.jpg
-        # print("s-->",s) #s--> D:\project\faces\2019_6_24_13_51_23.jpg
+        img=cv2.imread("./temp/change1.jpg")
 
         a=1.3
 
@@ -274,33 +280,31 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         if not os.path.exists("temp"):
             os.mkdir("temp")
 
-        # cv2.imwrite(self.imgpath+"\\change1.jpg",merge)
-        # self.label.setPixmap(QtGui.QPixmap(self.imgpath+"\\change1.jpg"))
-
         cv2.imwrite("./temp/change1.jpg",merge)
         self.label.setPixmap(QtGui.QPixmap("./temp/change1.jpg"))
-
-
 # ----------------------------------------------------------------
     def openFile(self):
 
-        global fname
-        global n
+        if not os.path.exists("temp"):
+            os.mkdir("temp")
 
-        fname=QtGui.QFileDialog.getOpenFileName(self,"Open file",self.imgpath,"Image files (*.jpg *.gif)")
+        global n
+        global fname
+
+        fname=QtGui.QFileDialog.getOpenFileName(self,"Open file","./myPicture/","Image files (*.jpg *.gif)")
         self.strimg=fname
-        # self.label.setPixmap(QtGui.QPixmap(fname))
-        # self.lineEdit.setText(fname)
-        self.label.setPixmap(QtGui.QPixmap(self.strimg))
-        self.lineEdit.setText(self.strimg)
+        self.label.setPixmap(QtGui.QPixmap(fname))
+        self.lineEdit.setText(fname)
+        s=self.strimg
+        img=cv2.imread(str(s))
+        cv2.imwrite("./temp/change1.jpg",img)
+        self.label.setPixmap(QtGui.QPixmap("./temp/change1.jpg"))
 
         a=fname.split("/")[-1] # picture name
         nfile=fname.split("/")[-2] # folder name
         mypath = "./"+nfile+"/"
         files = os.listdir(mypath) #make a list and all file name within
         n=files.index(a) # number of picture in list
-        self.n=files.index(a) # number of picture in list
-
 # ----------------------------------------------------------------
     def recodeVideo(self):
         cap = cv2.VideoCapture(0)
@@ -314,7 +318,7 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
 
         out = cv2.VideoWriter("myVideo\\video"+str(fileslen)+".avi", fourcc,30, (640, 480))
 
-        if not os.path.exists("myVideo"): # if this folder doesn't exists
+        if not os.path.exists("myVideo"):
             os.mkdir("myVideo")
 
         while(cap.isOpened()):
@@ -341,12 +345,16 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
             cblur=15
         if cblur==4:
             cblur=19
-        print(cblur)
-        s=fname.replace("/","\\")
-        im=cv2.imread(str(s))
-        blur=cv2.GaussianBlur(im,(cblur,cblur),0)
-        cv2.imwrite(self.imgpath+"\\blur1.jpg",blur)
-        self.label.setPixmap(QtGui.QPixmap(self.imgpath+"\\blur1.jpg"))
+
+        if not os.path.exists("temp"):
+            os.mkdir("temp")
+
+        img=cv2.imread("./temp/change1.jpg")
+
+        blur=cv2.GaussianBlur(img,(cblur,cblur),0)
+
+        cv2.imwrite("./temp/change1.jpg",blur)
+        self.label.setPixmap(QtGui.QPixmap("./temp/change1.jpg"))
 # ----------------------------------------------------------------
     def controlrgb(self):
         r=self.dial.value()
@@ -361,8 +369,7 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         b=b*51
         self.lcdNumber_3.display(b)
 
-        s=fname.replace("/","\\")
-        img=cv2.imread(str(s))
+        img=cv2.imread("./temp/change1.jpg")
 
         a=1.3
 
@@ -374,9 +381,8 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
 
         merge=cv2.addWeighted(img,a,red,1-a,n)
 
-        cv2.imwrite(self.imgpath+"\\change1.jpg",merge)
-
-        self.label.setPixmap(QtGui.QPixmap(self.imgpath+"\\change1.jpg"))
+        cv2.imwrite("./temp/change1.jpg",merge)
+        self.label.setPixmap(QtGui.QPixmap("./temp/change1.jpg"))
 
 # ----------------------------------------------------------------
     def saveImage(self):
@@ -384,7 +390,7 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         if not os.path.exists("changedPic"):
             os.mkdir("changedPic")
 
-        img=cv2.imread("./myPicture/change1.jpg")
+        img=cv2.imread("./temp/change1.jpg")
 
         files=os.listdir("./changedPic/")
         fn=len(files)
@@ -396,38 +402,53 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
             cv2.imwrite(imgpath+"\\cpic"+str(fn)+".jpg",img)
         msg1=QtGui.QMessageBox()
         msg1.setWindowTitle("Image Saved")
-        msg1.setInformativeText(u"你的圖片已被保存")
+        msg1.setInformativeText("Your picture has been saved in the changedPic folder!!")
         msg1.exec_()
 # ----------------------------------------------------------------
     def firstPic(self):
 
-        global fname
         global n
+        global fname
 
-        a=fname.split("/")[-1] # picture name
-        nfile=fname.split("/")[-2] # folder name
+        a=fname.split("/")[-1]
+        nfile=fname.split("/")[-2]
         mypath = "./"+nfile+"/"
         files = os.listdir(mypath)
+        n=files.index(a)
 
         imgPath="./"+nfile+"/"+files[0]
         self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(640,480,QtCore.Qt.KeepAspectRatio))
         self.lineEdit.setText(imgPath)
+        img=cv2.imread(imgPath)
+        cv2.imwrite("./temp/change1.jpg",img)
+
+        n=0
+
 # ----------------------------------------------------------------
     def LastPic(self):
 
-        global fname
         global n
+        global fname
 
-        a=fname.split("/")[-1] # picture name
+        a=fname.split("/")[-1]
         nfile=fname.split("/")[-2] # folder name
         mypath = "./"+nfile+"/"
         files = os.listdir(mypath)
+        n=files.index(a)
         nf=len(files)
         nf=nf-1
 
         imgPath="./"+nfile+"/"+files[nf]
         self.label.setPixmap(QtGui.QPixmap(imgPath).scaled(640,480,QtCore.Qt.KeepAspectRatio))
         self.lineEdit.setText(imgPath)
+        img=cv2.imread(imgPath)
+        cv2.imwrite("./temp/change1.jpg",img)
+
+        nf=len(files)
+        n=nf-1
+
+
+
 # ----------------------------------------------------------------
     def collectFace(self):
         cap=cv2.VideoCapture(0)
@@ -463,7 +484,7 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         cv2.destroyAllWindows()
         msg1=QtGui.QMessageBox()
         msg1.setWindowTitle("Faces collected")
-        msg1.setInformativeText(u"臉部檔案蒐集完成!你可以在faces檔案夾找到你的圖檔")
+        msg1.setInformativeText("Face files collection are complete! You can find your image files in the faces folder.")
         msg1.exec_()
 # ----------------------------------------------------------------
     def facerecog(self):

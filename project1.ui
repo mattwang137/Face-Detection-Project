@@ -11,7 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Python_Opencv_FaceDetection</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>btnimage/hat.jpg</normaloff>btnimage/hat.jpg</iconset>
   </property>
   <property name="autoFillBackground">
    <bool>false</bool>
@@ -589,6 +593,19 @@
      <pixmap>btnimage/mainfunction.jpg</pixmap>
     </property>
    </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>1020</x>
+      <y>760</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Developer: Matt Wang</string>
+    </property>
+   </widget>
    <zorder>label_7</zorder>
    <zorder>label_9</zorder>
    <zorder>pushButton</zorder>
@@ -615,6 +632,7 @@
    <zorder>pushButton_12</zorder>
    <zorder>label_8</zorder>
    <zorder>label_2</zorder>
+   <zorder>label_3</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
