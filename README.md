@@ -1,8 +1,16 @@
 # Face-Detection-Project
-Written by using Python , OpenCV , and PyQt4 
-
 Start develop date: 18/06/2019
 Developer: Matt Wang
+
+#----------------------------------
+
+Date: 27/06/2019
+In order to import face_recognition, therefore I changed my Python environment to version3.6.8
+
+#----------------------------------
+
+Date: 24/06/2019
+Written by using Python , OpenCV , and PyQt4 
 
 Descriptioin: Mainly using phthon and opencv to implement face detection function, then use Pyqt4 to give
   those features a GUI.
