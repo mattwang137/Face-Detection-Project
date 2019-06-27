@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #encoding:utf-8
 
 """
@@ -75,7 +75,9 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
                 else:
                     fn+=1
                     cv2.imwrite("myPicture\\pic"+str(fn)+".jpg",frame)
-            if cv2.waitKey(1) & 0xFF ==ord('q'): # quit
+            if k==ord("q"):
+                cap.release()
+                cv2.destroyAllWindows()
                 break
         cap.release()
         cv2.destroyAllWindows()
@@ -269,7 +271,8 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         n=self.horizontalSlider.value()
         n=n*50
 
-        img=cv2.imread("./temp/change1.jpg")
+        s=fname.replace("/","\\")
+        img=cv2.imread(str(s))
 
         a=1.3
 
@@ -282,6 +285,7 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
 
         cv2.imwrite("./temp/change1.jpg",merge)
         self.label.setPixmap(QtGui.QPixmap("./temp/change1.jpg"))
+
 # ----------------------------------------------------------------
     def openFile(self):
 
@@ -307,27 +311,31 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         n=files.index(a) # number of picture in list
 # ----------------------------------------------------------------
     def recodeVideo(self):
+
+        if not os.path.exists("myVideo"):
+            os.mkdir("myVideo")
+
         cap = cv2.VideoCapture(0)
 
-        fourcc = cv2.cv.CV_FOURCC("D","I","B"," ")
+        size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+                int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+
+        fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
 
         mypath = "./myVideo/"
         files = os.listdir(mypath)
         fileslen=len(files)
         fileslen+=1
 
-        out = cv2.VideoWriter("myVideo\\video"+str(fileslen)+".avi", fourcc,30, (640, 480))
-
-        if not os.path.exists("myVideo"):
-            os.mkdir("myVideo")
+        out = cv2.VideoWriter()
+        out.open("myVideo\\video"+str(fileslen)+".mp4",fourcc,20,size,True)
 
         while(cap.isOpened()):
             ret,frame = cap.read()
             if ret == True:
-
                 out.write(frame)
 
-                cv2.imshow("Recoding...", frame)
+                cv2.imshow("Please press 'q' to exit", frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
             else:
@@ -336,6 +344,7 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         cap.release()
         out.release()
         cv2.destroyAllWindows()
+
 # ----------------------------------------------------------------
     def blur(self):
         cblur=self.horizontalSlider_2.value()
@@ -349,14 +358,17 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         if not os.path.exists("temp"):
             os.mkdir("temp")
 
-        img=cv2.imread("./temp/change1.jpg")
+        s=fname.replace("/","\\")
+        img=cv2.imread(str(s))
 
         blur=cv2.GaussianBlur(img,(cblur,cblur),0)
 
         cv2.imwrite("./temp/change1.jpg",blur)
         self.label.setPixmap(QtGui.QPixmap("./temp/change1.jpg"))
+
 # ----------------------------------------------------------------
     def controlrgb(self):
+
         r=self.dial.value()
         r=r*51
         self.lcdNumber.display(r)
@@ -369,7 +381,8 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
         b=b*51
         self.lcdNumber_3.display(b)
 
-        img=cv2.imread("./temp/change1.jpg")
+        s=fname.replace("/","\\")
+        img=cv2.imread(str(s))
 
         a=1.3
 
@@ -529,7 +542,7 @@ class Myapp(QtGui.QMainWindow,Ui_MainWindow):
                 cv2.rectangle(frame, (y1,x2-30), (y2,x2), (255,0,0), cv2.FILLED)
                 cv2.putText(frame, showName, (y1+10, x2-10), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255,255,255), 1)
 
-            cv2.imshow("Face Recognition Operating", frame)
+            cv2.imshow("Face Recognition Operating, Please press 'q' to exit", frame)
             if cv2.waitKey(1)==ord("q"):
                 break
         cap.release()
