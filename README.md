@@ -6,7 +6,7 @@ Developer: Matt Wang
 
 Date: 27/06/2019
 In order to import face_recognition, therefore I changed my Python environment to version3.6.8
-Please dowload the file "shape_predictor_68_face_landmarks.dat", and move it to the same folder as project1.py
+Please dowload the file "shape_predictor_68_face_landmarks.dat", and move it to the same folder as project1.py.
 
 #----------------------------------
 
